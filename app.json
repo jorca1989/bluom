@@ -19,7 +19,11 @@
       }
     },
     "android": {
-      "package": "com.jwfca.bluom"
+      "package": "com.jwfca.bluom",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +43,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7e08b902-8286-427f-844d-652b292722fe"
+      }
     }
   }
 }
