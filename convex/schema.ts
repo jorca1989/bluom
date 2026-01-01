@@ -89,7 +89,10 @@ export default defineSchema({
     dailyGamePlays: v.optional(v.number()),
     dailyMeditationPlays: v.optional(v.number()),
     dailyMealLogs: v.optional(v.number()),
+    dailyAiMessages: v.optional(v.number()),
     lastResetDate: v.optional(v.string()), // "YYYY-MM-DD"
+
+    partnerId: v.optional(v.id("users")), // For shared Todo/Grocery lists
 
     // Metadata
     createdAt: v.float64(),
@@ -707,4 +710,50 @@ export default defineSchema({
     updatedAt: v.number(),
     createdAt: v.number(),
   }).index("by_user", ["userId"]).index("by_user_type", ["userId", "type"]),
+
+  // Requested by spec: support_tickets (fields: userEmail, category, message, timestamp)
+  support_tickets: defineTable({
+    userId: v.id("users"),
+    userEmail: v.string(),
+    category: v.union(v.literal("bug"), v.literal("feedback")),
+    message: v.string(),
+    timestamp: v.number(),
+  }).index("by_user", ["userId"]),
+
+  // Requested by spec: todo table (shared family lists supported via partnerId)
+  todo: defineTable({
+    userId: v.id("users"),
+    text: v.string(),
+    category: v.union(v.literal("Family"), v.literal("Work"), v.literal("Personal"), v.literal("Grocery")),
+    completed: v.boolean(),
+    partnerId: v.optional(v.id("users")),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]).index("by_user_category", ["userId", "category"]),
+
+  // Requested by spec: fasting_logs
+  fasting_logs: defineTable({
+    userId: v.id("users"),
+    startTime: v.number(),
+    endTime: v.optional(v.number()),
+    protocol: v.string(), // "16:8", "18:6", "20:4"
+    isActive: v.boolean(),
+  }).index("by_user", ["userId"]).index("by_user_active", ["userId", "isActive"]),
+
+  cycleLogs: defineTable({
+    userId: v.id("users"),
+    date: v.string(), // "YYYY-MM-DD"
+    symptoms: v.array(v.string()),
+    flow: v.optional(v.string()),
+    ovulationPredicted: v.optional(v.boolean()),
+  }).index("by_user_date", ["userId", "date"]),
+
+  vitalityLogs: defineTable({
+    userId: v.id("users"),
+    date: v.string(), // "YYYY-MM-DD"
+    mood: v.number(),
+    stress: v.string(),
+    strength: v.number(),
+    sleepQuality: v.number(),
+    kegelCompleted: v.optional(v.boolean()),
+  }).index("by_user_date", ["userId", "date"]),
 });

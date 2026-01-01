@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUser, useAuth } from '@clerk/clerk-expo';
-import { User, Mail, LogOut, Settings, Sparkles, RefreshCcw, TrendingDown } from 'lucide-react-native';
+import { User, Mail, LogOut, Settings, Sparkles, RefreshCcw, TrendingDown, MessageSquare, Clock, LayoutGrid, BookOpen, Calendar, Zap, Bug } from 'lucide-react-native';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useRouter } from 'expo-router';
@@ -161,7 +161,7 @@ export default function ProfileScreen() {
           <TouchableOpacity
             style={styles.menuItem}
             activeOpacity={0.7}
-            onPress={() => router.push('/sugar-control')}
+            onPress={() => router.push('/sugar-dashboard')}
           >
             <View style={styles.menuItemLeft}>
               <View style={[styles.menuIconContainer, { backgroundColor: '#fee2e2' }]}>
@@ -192,6 +192,106 @@ export default function ProfileScreen() {
             </View>
             <Text style={styles.menuItemChevron}>›</Text>
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Life Management</Text>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => router.push('/ai-coach')}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIconContainer, { backgroundColor: '#eff6ff' }]}>
+                <MessageSquare size={20} color="#2563eb" />
+              </View>
+              <Text style={styles.menuItemText}>AI Coach</Text>
+            </View>
+            <Text style={styles.menuItemChevron}>›</Text>
+          </TouchableOpacity>
+
+          <View style={{ height: 12 }} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => router.push(convexUser?.biologicalSex === 'female' ? '/womens-health' : '/mens-health')}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIconContainer, { backgroundColor: convexUser?.biologicalSex === 'female' ? '#fdf2f8' : '#eff6ff' }]}>
+                {convexUser?.biologicalSex === 'female' ? <Calendar size={20} color="#db2777" /> : <Zap size={20} color="#3b82f6" />}
+              </View>
+              <Text style={styles.menuItemText}>{convexUser?.biologicalSex === 'female' ? 'Women’s Health' : 'Men’s Health'}</Text>
+            </View>
+            <Text style={styles.menuItemChevron}>›</Text>
+          </TouchableOpacity>
+
+          <View style={{ height: 12 }} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => router.push('/fasting')}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIconContainer, { backgroundColor: '#fffbeb' }]}>
+                <Clock size={20} color="#f59e0b" />
+              </View>
+              <Text style={styles.menuItemText}>Fasting Tracker</Text>
+            </View>
+            <Text style={styles.menuItemChevron}>›</Text>
+          </TouchableOpacity>
+
+          <View style={{ height: 12 }} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => router.push('/todo-list')}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
+                <LayoutGrid size={20} color="#8b5cf6" />
+              </View>
+              <Text style={styles.menuItemText}>Productivity Hub</Text>
+            </View>
+            <Text style={styles.menuItemChevron}>›</Text>
+          </TouchableOpacity>
+
+          <View style={{ height: 12 }} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => router.push('/library')}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIconContainer, { backgroundColor: '#ecfdf5' }]}>
+                <BookOpen size={20} color="#10b981" />
+              </View>
+              <Text style={styles.menuItemText}>Bluom Library</Text>
+            </View>
+            <Text style={styles.menuItemChevron}>›</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Support</Text>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => router.push('/support')}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIconContainer, { backgroundColor: '#f1f5f9' }]}>
+                <Bug size={20} color="#64748b" />
+              </View>
+              <Text style={styles.menuItemText}>Help & Feedback</Text>
+            </View>
+            <Text style={styles.menuItemChevron}>›</Text>
+          </TouchableOpacity>
 
           <View style={{ height: 12 }} />
 
@@ -208,7 +308,6 @@ export default function ProfileScreen() {
             </View>
             <Text style={styles.menuItemChevron}>›</Text>
           </TouchableOpacity>
-
         </View>
 
         {convexUser?.isAdmin && (

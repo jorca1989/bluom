@@ -4,10 +4,12 @@ import { useUser } from '@clerk/clerk-expo';
 import { useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { api } from '@/convex/_generated/api';
+import { useSubscription } from '@/context/SubscriptionProvider';
 
 export function useAccessControl() {
   const router = useRouter();
   const { user: clerkUser } = useUser();
+  const sub = useSubscription();
 
   const convexUser = useQuery(
     api.users.getUserByClerkId,
@@ -15,20 +17,12 @@ export function useAccessControl() {
   );
 
   const isAdmin = useMemo(() => {
-    return (
-      convexUser?.isAdmin === true ||
-      convexUser?.role === 'admin' ||
-      convexUser?.role === 'super_admin'
-    );
+    return sub.isAdmin;
   }, [convexUser?.isAdmin, convexUser?.role]);
 
   const isPro = useMemo(() => {
-    return (
-      isAdmin ||
-      convexUser?.subscriptionStatus === 'pro' ||
-      convexUser?.isPremium === true
-    );
-  }, [convexUser?.subscriptionStatus, convexUser?.isPremium, isAdmin]);
+    return sub.isPro;
+  }, [sub.isPro]);
 
   function promptUpgrade(message: string) {
     Alert.alert('Premium Required', message, [

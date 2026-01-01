@@ -34,6 +34,13 @@ import {
   Gem,
   Zap,
   Locate,
+  MessageSquare,
+  Calendar,
+  Clock,
+  BookOpen,
+  CheckCircle,
+  Music,
+  ShoppingBag,
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -215,14 +222,26 @@ export default function IndexScreen() {
     },
   ] as const;
 
-  const quickActions = [
+  const discoveryItems = [
+    { Icon: MessageSquare, label: 'AI Coach', path: '/ai-coach', color: '#2563eb', bgColor: '#eff6ff' },
+    { Icon: Calendar, label: 'Cycle', path: '/womens-health', color: '#db2777', bgColor: '#fdf2f8' },
+    { Icon: Zap, label: 'Vitality', path: '/mens-health', color: '#3b82f6', bgColor: '#eff6ff' },
+    { Icon: Clock, label: 'Fasting', path: '/fasting', color: '#f59e0b', bgColor: '#fffbeb' },
+    { Icon: BookOpen, label: 'Library', path: '/library', color: '#10b981', bgColor: '#ecfdf5' },
+    { Icon: CheckCircle, label: 'Todos', path: '/todo-list', color: '#8b5cf6', bgColor: '#f5f3ff' },
+    
+    { Icon: Music, label: 'Radio', path: '/music-hub', color: '#8b5cf6', bgColor: '#f5f3ff' },
+    { Icon: Timer, label: 'Focus', path: '/focus-mode', color: '#3b82f6', bgColor: '#eff6ff' },
+    { Icon: ShoppingBag, label: 'Shop', path: '/shop', color: '#2563eb', bgColor: '#eff6ff' },
     { Icon: Utensils, label: 'Recipes', path: '/recipes', color: '#f97316', bgColor: '#fff7ed' },
     { Icon: Play, label: 'Workouts', path: '/workouts', color: '#16a34a', bgColor: '#f0fdf4' },
-    { Icon: Heart, label: 'Habits', path: '/(tabs)/wellness', color: '#ec4899', bgColor: '#fdf2f8' },
-    { Icon: Moon, label: 'Sleep', path: '/(tabs)/wellness', color: '#8b5cf6', bgColor: '#f5f3ff' },
-    { Icon: Users, label: 'Friends', path: null, color: '#3b82f6', bgColor: '#eff6ff' },
-    { Icon: TrendingDown, label: 'Sugar Control', path: '/sugar-control', color: '#ef4444', bgColor: '#fee2e2' },
+    { Icon: TrendingDown, label: 'Sugar', path: '/sugar-dashboard', color: '#ef4444', bgColor: '#fee2e2' },
   ] as const;
+
+  const discoveryPages = [
+    discoveryItems.slice(0, 6),
+    discoveryItems.slice(6, 12),
+  ];
 
   // Weekly chart data (mock data for now)
   const weekData = [1, 3, 2, 4, 3, 5, 4];
@@ -412,29 +431,43 @@ export default function IndexScreen() {
           <Text style={styles.chartLabel}>Calories burned this week</Text>
         </View>
 
-        {/* Discover Section */}
+        {/* Discover Section (Carousel) */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Discover</Text>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Discovery</Text>
+            <TouchableOpacity onPress={() => Alert.alert('Precision Modules', 'All precision health hubs are active.')}>
+              <Text style={{ color: '#2563eb', fontWeight: '800', fontSize: 12 }}>See All</Text>
+            </TouchableOpacity>
+          </View>
 
-          <View style={styles.discoverGrid}>
-            {quickActions.map((action, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.discoverItem}
-                activeOpacity={0.7}
-                onPress={() => {
-                  if (action.path === null) {
-                    Alert.alert('Coming Soon', 'Friends feature is coming soon!');
-                  } else {
-                    router.push(action.path);
-                  }
-                }}
-              >
-                <View style={[styles.discoverIconContainer, { backgroundColor: action.bgColor }]}>
-                  <action.Icon size={20} color={action.color} />
-                </View>
-                <Text style={styles.discoverLabel}>{action.label}</Text>
-              </TouchableOpacity>
+          <ScrollView 
+            horizontal 
+            pagingEnabled 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingVertical: 10 }}
+          >
+            {discoveryPages.map((page, pageIdx) => (
+              <View key={pageIdx} style={{ width: width - 64, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                {page.map((item, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={{ width: '30%', alignItems: 'center', marginBottom: 20 }}
+                    onPress={() => item.path && router.push(item.path as any)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: item.bgColor, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                      <item.Icon size={22} color={item.color} />
+                    </View>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#475569' }} numberOfLines={1}>{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ))}
+          </ScrollView>
+          
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
+            {discoveryPages.map((_, i) => (
+              <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#cbd5e1' }} />
             ))}
           </View>
         </View>

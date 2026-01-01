@@ -7,6 +7,8 @@ import { ConvexClerkProvider } from '@/providers/ConvexClerkProvider';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RevenueCatBootstrapper } from '@/components/RevenueCatBootstrapper';
+import { SubscriptionProvider } from '@/context/SubscriptionProvider';
+import { CelebrationProvider } from '@/context/CelebrationContext';
 
 // Polyfill Buffer for libraries like react-native-svg (used by lucide-react-native).
 import { Buffer } from 'buffer';
@@ -21,12 +23,14 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ConvexClerkProvider>
           <RevenueCatBootstrapper />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: '#ffffff' },
-            }}
-          >
+          <SubscriptionProvider>
+            <CelebrationProvider>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: '#ffffff' },
+                }}
+              >
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen
               name="(auth)/login"
@@ -78,6 +82,8 @@ export default function RootLayout() {
             />
             <Stack.Screen name="+not-found" options={{ headerShown: false }} />
           </Stack>
+          </CelebrationProvider>
+          </SubscriptionProvider>
           <StatusBar style="auto" />
         </ConvexClerkProvider>
       </SafeAreaProvider>

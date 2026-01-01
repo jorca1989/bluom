@@ -265,3 +265,49 @@ export const resetOnboarding = mutation({
     });
   },
 });
+
+/**
+ * Link a partner by email for shared features (Todo/Grocery)
+ */
+export const linkPartner = mutation({
+  args: {
+    userId: v.id("users"),
+    partnerEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const partner = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.partnerEmail.toLowerCase().trim()))
+      .first();
+
+    if (!partner) {
+      throw new Error("User with this email not found. Tell them to join Bluom first!");
+    }
+
+    if (partner._id === args.userId) {
+      throw new Error("You cannot link with yourself.");
+    }
+
+    // Bidirectional link
+    await ctx.db.patch(args.userId, { partnerId: partner._id, updatedAt: Date.now() });
+    await ctx.db.patch(partner._id, { partnerId: args.userId, updatedAt: Date.now() });
+
+    return { partnerName: partner.name };
+  },
+});
+
+/**
+ * Unlink partner
+ */
+export const unlinkPartner = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return;
+
+    if (user.partnerId) {
+      await ctx.db.patch(user.partnerId, { partnerId: undefined, updatedAt: Date.now() });
+    }
+    await ctx.db.patch(args.userId, { partnerId: undefined, updatedAt: Date.now() });
+  },
+});

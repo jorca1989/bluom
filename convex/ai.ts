@@ -125,6 +125,75 @@ export const recognizeFoodFromImage = action({
   },
 });
 
+/**
+ * Sugar Control: Scan a product/label photo and estimate sugar + calories + smart alternative.
+ */
+export const scanSugarProductFromImage = action({
+  args: {
+    imageBase64: v.string(),
+    mimeType: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    const prompt =
+      'You are a nutrition expert and sugar-awareness coach.\n' +
+      'Analyze this image of a packaged food/product (front label or nutrition label).\n' +
+      'Return ONLY valid JSON with this exact shape:\n' +
+      '{\n' +
+      '  "productName": "string",\n' +
+      '  "estimatedSugarGrams": number,\n' +
+      '  "estimatedCalories": number,\n' +
+      '  "hiddenSugarsFound": ["string"],\n' +
+      '  "smartAlternative": "string",\n' +
+      '  "notes": "string"\n' +
+      '}\n' +
+      'Rules:\n' +
+      '- Sugar grams and calories should be per serving if you can read serving info; otherwise best-effort estimate.\n' +
+      '- hiddenSugarsFound: list any ingredients that are actually hidden sugars (maltodextrin, high fructose corn syrup, rice syrup, etc.).\n' +
+      '- If you cannot read the label, infer from product type; if still unsure, use 0.\n' +
+      '- smartAlternative should be a concrete healthier swap a user could buy instead.\n' +
+      '- notes: short explanation (1 sentence max), no markdown.\n' +
+      '- Output MUST be JSON only, no extra text.';
+
+    const result = await generateContentWithFallback([
+      { text: prompt },
+      {
+        inlineData: {
+          mimeType: args.mimeType,
+          data: args.imageBase64,
+        },
+      },
+    ]);
+
+    const text = result.response.text();
+    const parsed = safeJsonParse<{
+      productName: string;
+      estimatedSugarGrams: number;
+      estimatedCalories: number;
+      hiddenSugarsFound: string[];
+      smartAlternative: string;
+      notes: string;
+    }>(text);
+
+    if (parsed) return parsed;
+
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      const maybe = safeJsonParse<any>(text.slice(start, end + 1));
+      if (maybe) return maybe;
+    }
+
+    return {
+      productName: "Unknown",
+      estimatedSugarGrams: 0,
+      estimatedCalories: 0,
+      hiddenSugarsFound: [],
+      smartAlternative: "Try sparkling water, unsweetened yogurt, or whole fruit instead.",
+      notes: "Could not confidently read the label from this photo.",
+    };
+  },
+});
+
 export const generateAiRecipe = action({
   args: {
     calories: v.float64(),
@@ -179,6 +248,59 @@ Return ONLY valid JSON with this exact shape:
     }
 
     throw new Error("Gemini returned invalid JSON for recipe generation.");
+  },
+});
+
+/**
+ * AI Coach Chat Action
+ */
+export const chatWithCoach = action({
+  args: {
+    message: v.string(),
+    history: v.array(v.object({ role: v.string(), content: v.string() })),
+    context: v.optional(v.string()), // User's fitness/nutrition data
+  },
+  handler: async (_ctx, args) => {
+    const systemPrompt = `You are the Bluom AI Coach, a highly skilled expert in Fitness, Nutrition, and Wellness.
+Your goal is to provide precise, science-backed, and encouraging advice to help the user achieve their health goals.
+Context about the user: ${args.context ?? "No specific context provided."}
+
+Keep responses concise, professional, and actionable. Use bullet points for advice.
+If the user asks for medical advice, always include a disclaimer that you are an AI coach and they should consult a doctor.`;
+
+    const chatHistory = args.history.map(h => ({
+      role: h.role === "user" ? "user" : "model",
+      parts: [{ text: h.content }]
+    }));
+
+    const { genAI, models } = getModel();
+    let responseText = "";
+    let success = false;
+
+    for (const modelName of models) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const chat = model.startChat({
+          history: [
+            { role: "user", parts: [{ text: systemPrompt }] },
+            { role: "model", parts: [{ text: "Understood. I am the Bluom AI Coach. How can I help you today?" }] },
+            ...chatHistory
+          ],
+        });
+
+        const result = await chat.sendMessage(args.message);
+        responseText = result.response.text();
+        success = true;
+        break;
+      } catch (err) {
+        if (isModelNotFoundOrUnsupported(err)) continue;
+        throw err;
+      }
+    }
+
+    if (!success) throw new Error("Failed to get response from Gemini.");
+
+    return responseText;
   },
 });
 

@@ -20,6 +20,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { getBottomContentPadding } from '@/utils/layout';
 import { SoundEffect, triggerSound } from '@/utils/soundEffects';
+import { useCelebration } from '@/context/CelebrationContext';
 
 const { width } = Dimensions.get('window');
 const isSmallScreen = width < 380;
@@ -68,6 +69,7 @@ export default function MoveScreen() {
   const addStepsEntry = useMutation(api.steps.addStepsEntry);
   const deleteExerciseEntry = useMutation(api.exercise.deleteExerciseEntry);
   const deleteStepsEntry = useMutation(api.steps.deleteStepsEntry);
+  const celebration = useCelebration();
 
   const today = useMemo(() => new Date(), []);
   const currentDate = useMemo(() => toIsoDateString(today), [today]);
@@ -287,6 +289,7 @@ export default function MoveScreen() {
       });
 
       triggerSound(SoundEffect.LOG_WORKOUT);
+      celebration.trigger('fireworks');
       setSelectedExercise(null);
       setShowExerciseSearch(false);
       setShowCustomExercise(false);
@@ -319,6 +322,7 @@ export default function MoveScreen() {
       });
 
       triggerSound(SoundEffect.LOG_WORKOUT);
+      celebration.trigger('fireworks');
       setCustomExerciseForm({ name: '', description: '', duration: '', calories: '' });
       setShowCustomExercise(false);
       setShowWorkoutModal(false);
@@ -340,6 +344,7 @@ export default function MoveScreen() {
         steps,
       });
       triggerSound(SoundEffect.LOG_STEPS);
+      celebration.trigger('confetti');
       setStepsInput('');
       setShowStepsModal(false);
       Alert.alert('Success', `${steps.toLocaleString()} steps added!`);

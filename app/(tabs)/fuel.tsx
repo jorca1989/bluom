@@ -21,6 +21,7 @@ import { api } from '@/convex/_generated/api';
 import { getCurrentWeekRange, getTodayISO } from '@/utils/dates';
 import { getBottomContentPadding, getWeekCalendarItemSize } from '@/utils/layout';
 import { SoundEffect, triggerSound } from '@/utils/soundEffects';
+import { useCelebration } from '@/context/CelebrationContext';
 import { sendHydrationReminder, sendMealReminder } from '@/utils/notifications';
 import PhotoRecognitionModal from '@/components/PhotoRecognitionModal';
 import Svg, { Circle } from 'react-native-svg';
@@ -97,6 +98,7 @@ export default function FuelScreen() {
     api.users.getUserByClerkId,
     clerkUser?.id ? { clerkId: clerkUser.id } : 'skip'
   );
+  const celebration = useCelebration();
 
   const todayISO = useMemo(() => getTodayISO(), []);
   const [selectedDate, setSelectedDate] = useState(todayISO);
@@ -353,6 +355,7 @@ export default function FuelScreen() {
     });
 
     triggerSound(SoundEffect.LOG_WATER);
+    celebration.trigger('confetti');
 
     const weightKg = convexUser.weight ?? 0;
     const waterGoal = weightKg > 0 ? Math.round(weightKg * 30 * 0.033814) : 64; // ~30ml/kg

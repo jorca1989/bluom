@@ -107,40 +107,24 @@ export default function PremiumScreen() {
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
-            <Text style={styles.heroTitle}>Unlock everything</Text>
+            <Text style={styles.heroTitle}>The Life Management Ecosystem</Text>
             <Text style={styles.heroSub}>
-              You’ll get unlimited access across Fuel, Move, Wellness, and premium modules.
+              Unlock everything: AI Coach, Specialized Health Hubs, Fasting Tracker, and Household Assistant.
             </Text>
           </View>
 
-          {loading ? (
-            <View style={[styles.card, styles.center]}>
-              <ActivityIndicator size="small" color="#2563eb" />
-              <Text style={styles.muted}>Loading offerings…</Text>
-            </View>
-          ) : null}
-
-          {!loading && (!pkgs.monthly || !pkgs.annual) ? (
-            <View style={[styles.card, { borderColor: '#fde68a', backgroundColor: '#fffbeb' }]}>
-              <Text style={[styles.cardTitle, { color: '#92400e' }]}>RevenueCat setup needed</Text>
-              <Text style={[styles.muted, { color: '#b45309', textAlign: 'left' }]}>
-                Monthly/Annual packages are missing from your RevenueCat Offering. Add them, then try again.
-              </Text>
-            </View>
-          ) : null}
-
           <PlanCard
-            title="Monthly"
-            subtitle="Cancel anytime"
-            price={pkgs.monthly?.product?.priceString ?? '—'}
+            title="Monthly Pro"
+            subtitle="$9.95 / month"
+            price="$9.95"
             popular={false}
             disabled={upgrading || !pkgs.monthly}
             onPress={() => purchase('monthly')}
           />
           <PlanCard
-            title="Annual"
-            subtitle="Best value"
-            price={pkgs.annual?.product?.priceString ?? '—'}
+            title="Annual Pro"
+            subtitle="Save 50% - Only $4.95/mo"
+            price="$59.40"
             popular={true}
             disabled={upgrading || !pkgs.annual}
             onPress={() => purchase('annual')}

@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '@/utils/layout';
-import { Home, Utensils, Dumbbell, Heart, User } from 'lucide-react-native';
+import { Home, Utensils, Dumbbell, Heart, User, ShoppingBag } from 'lucide-react-native';
 import { SoundEffect, triggerSound } from '@/utils/soundEffects';
 
 export default function TabLayout() {
@@ -63,6 +63,16 @@ export default function TabLayout() {
         options={{
           title: 'Wellness',
           tabBarIcon: ({ size, color }) => <Heart size={size} color={color} />,
+        }}
+        listeners={{
+          tabPress: () => triggerSound(SoundEffect.NAV_TABS),
+        }}
+      />
+      <Tabs.Screen
+        name="shop"
+        options={{
+          title: 'Shop',
+          tabBarIcon: ({ size, color }) => <ShoppingBag size={size} color={color} />,
         }}
         listeners={{
           tabPress: () => triggerSound(SoundEffect.NAV_TABS),

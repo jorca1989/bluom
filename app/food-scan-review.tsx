@@ -8,6 +8,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { getBottomContentPadding } from '@/utils/layout';
 import { triggerSound, SoundEffect } from '@/utils/soundEffects';
+import { useCelebration } from '@/context/CelebrationContext';
 
 function toMealTypeLower(meal: string) {
   const m = (meal ?? '').toLowerCase();
@@ -30,6 +31,7 @@ export default function FoodScanReviewScreen() {
   );
 
   const logFoodEntry = useMutation(api.food.logFoodEntry);
+  const celebration = useCelebration();
 
   const meal = useMemo(() => String(params.meal ?? 'Lunch'), [params.meal]);
   const date = useMemo(() => String(params.date ?? new Date().toISOString().slice(0, 10)), [params.date]);
@@ -72,6 +74,7 @@ export default function FoodScanReviewScreen() {
         date,
       });
       triggerSound(SoundEffect.LOG_MEAL);
+      celebration.trigger('confetti');
       Alert.alert('Saved', `Added ${trimmed} to ${meal}`);
       router.replace('/(tabs)/fuel');
     } catch (e: any) {
