@@ -117,7 +117,7 @@ export const getDailyMacros = query({
 
     const entries = await ctx.db
       .query("foodEntries")
-      .withIndex("by_user_and_date", (q) =>
+      .withIndex("by_user_date", (q) =>
         q.eq("userId", args.userId).eq("date", args.date)
       )
       .collect();

@@ -48,17 +48,17 @@ export const getMetricStreaks = query({
 
     // 2. Water Streak (assume 64oz+ is a "win")
     const waterLogs = await ctx.db
-      .query("foodEntries")
-      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .query("dailyStats")
+      .withIndex("by_user_and_date", (q) => q.eq("userId", args.userId))
       .filter((q) => q.gte(q.field("waterOz"), 64))
       .collect();
     const waterStreak = calculateStreak(waterLogs.map((l) => l.date));
 
     // 3. Exercise Streak
     const exerciseLogs = await ctx.db
-      .query("foodEntries")
-      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
-      .filter((q) => q.gt(q.field("calories"), 0)) 
+      .query("exerciseEntries")
+      .withIndex("by_user_and_type", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.gt(q.field("caloriesBurned"), 0)) 
       .collect();
     const workoutStreak = calculateStreak(exerciseLogs.map((l) => l.date));
 
@@ -78,7 +78,7 @@ export const getMetricStreaks = query({
 
     // 6. Meditation Streak
     const meditationLogs = await ctx.db
-      .query("meditationSessions")
+      .query("meditationLogs")
       .withIndex("by_user_and_date", (q) => q.eq("userId", args.userId))
       .collect();
     const meditationStreak = calculateStreak(meditationLogs.map(l => l.date));

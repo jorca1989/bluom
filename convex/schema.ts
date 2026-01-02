@@ -194,7 +194,7 @@ export default defineSchema({
     // Metadata
     createdAt: v.float64(),
   })
-    .index("by_user_and_date", ["userId", "date"])
+    .index("by_user_date", ["userId", "date"])
     .index("by_user_and_meal_type", ["userId", "mealType", "date"]),
 
   // Foods catalog - user-created foods/ingredients (Fuel screen)

@@ -1,8 +1,8 @@
 import Purchases, {
   CustomerInfo,
-  Offerings,
   PurchasesPackage,
   PurchasesOffering,
+  PurchasesOfferings,
 } from 'react-native-purchases';
 
 let configuredForUserId: string | null = null;
@@ -38,7 +38,7 @@ export async function getCustomerInfoSafe(): Promise<CustomerInfo | null> {
   }
 }
 
-export async function getOfferingsSafe(): Promise<Offerings | null> {
+export async function getOfferingsSafe(): Promise<PurchasesOfferings | null> {
   try {
     return await Purchases.getOfferings();
   } catch (e) {
@@ -48,7 +48,7 @@ export async function getOfferingsSafe(): Promise<Offerings | null> {
   }
 }
 
-export function pickProOffering(offerings: Offerings | null): PurchasesOffering | null {
+export function pickProOffering(offerings: PurchasesOfferings | null): PurchasesOffering | null {
   if (!offerings) return null;
   return offerings.current ?? null;
 }
@@ -58,9 +58,11 @@ export function pickMonthlyAndAnnualPackages(offering: PurchasesOffering | null)
   annual?: PurchasesPackage;
   all: PurchasesPackage[];
 } {
-  const pkgs = offering?.availablePackages ?? [];
-  const monthly = pkgs.find((p) => String(p.packageType).toLowerCase().includes('monthly'));
-  const annual = pkgs.find((p) => String(p.packageType).toLowerCase().includes('annual'));
+  if (!offering) return { all: [] };
+  
+  const pkgs = offering.availablePackages;
+  const monthly = pkgs.find((p: PurchasesPackage) => String(p.packageType).toLowerCase().includes('monthly'));
+  const annual = pkgs.find((p: PurchasesPackage) => String(p.packageType).toLowerCase().includes('annual'));
   return { monthly, annual, all: pkgs };
 }
 

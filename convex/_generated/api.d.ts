@@ -35,6 +35,7 @@ import type * as quests from "../quests.js";
 import type * as recipes from "../recipes.js";
 import type * as revenuecat from "../revenuecat.js";
 import type * as seed from "../seed.js";
+import type * as seedExercises from "../seedExercises.js";
 import type * as shoppingList from "../shoppingList.js";
 import type * as steps from "../steps.js";
 import type * as streaks from "../streaks.js";
@@ -81,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   recipes: typeof recipes;
   revenuecat: typeof revenuecat;
   seed: typeof seed;
+  seedExercises: typeof seedExercises;
   shoppingList: typeof shoppingList;
   steps: typeof steps;
   streaks: typeof streaks;

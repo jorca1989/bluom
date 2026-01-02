@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSignUp, useOAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
+import * as AuthSession from 'expo-auth-session';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Lock, User, UserPlus } from 'lucide-react-native';
 
@@ -100,11 +101,17 @@ export default function SignupScreen() {
       setLoading(true);
       setError('');
 
-      const { createdSessionId, setActive: setActiveOAuth } = await startOAuthFlow();
+      const { createdSessionId, setActive: setActiveOAuth } = await startOAuthFlow({
+        redirectUrl: AuthSession.makeRedirectUri({ scheme: 'bluom' }),
+      });
 
-      if (createdSessionId) {
-        await setActiveOAuth!({ session: createdSessionId });
+      if (createdSessionId && setActiveOAuth) {
+        await setActiveOAuth({ session: createdSessionId });
         router.replace('/');
+      } else {
+        console.log(
+          'OAuth flow completed without session - likely cancelled or pending verification'
+        );
       }
     } catch (err: any) {
       console.error('Google signup error:', err);

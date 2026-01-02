@@ -1,3 +1,4 @@
+// @ts-ignore - shopify-buy doesn't have proper TypeScript definitions
 import Client from 'shopify-buy';
 
 // Initialize the Shopify Client

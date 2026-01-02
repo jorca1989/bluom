@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -50,6 +51,7 @@ export default function IndexScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
+  const [showAllDiscovery, setShowAllDiscovery] = useState(false);
 
   const todayISO = useMemo(() => getTodayISO(), []);
 
@@ -83,15 +85,6 @@ export default function IndexScreen() {
     convexUser?._id ? { userId: convexUser._id, date: todayISO } : 'skip'
   );
 
-  const isLoading =
-    !isClerkLoaded ||
-    (clerkUser && convexUser === undefined) ||
-    (convexUser?._id &&
-      (foodTotals === undefined ||
-        caloriesBurned === undefined ||
-        exerciseEntries === undefined ||
-        sleepLogsToday === undefined));
-
   const steps = useMemo(() => {
     if (!stepEntriesToday) return 0;
     return stepEntriesToday.reduce((acc, entry) => acc + entry.steps, 0);
@@ -114,57 +107,6 @@ export default function IndexScreen() {
     return latest?.hours ?? 0;
   }, [sleepLogsToday]);
 
-  // Trigger notifications when data changes
-  useEffect(() => {
-    const stepGoal = 10000;
-    if (steps > 0 && steps < stepGoal) {
-      sendStepReminder(steps, stepGoal);
-    }
-  }, [steps]);
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563eb" />
-          <Text style={styles.loadingText}>Loading your dashboard...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!clerkUser) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Please sign in to continue</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!convexUser) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563eb" />
-          <Text style={styles.loadingText}>Setting up your profile...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const hasCompletedOnboarding = convexUser.age > 0 && convexUser.weight > 0 && convexUser.height > 0;
-  if (!hasCompletedOnboarding) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Finish onboarding to see your Home dashboard.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   const goalCalories = convexUser?.dailyCalories ?? 2000;
   const goalProtein = convexUser?.dailyProtein ?? 150;
   const goalCarbs = convexUser?.dailyCarbs ?? 225;
@@ -178,7 +120,7 @@ export default function IndexScreen() {
   const burned = caloriesBurned ?? 0;
   const remainingCalories = goalCalories - todayFoodCalories + burned;
 
-  const isPremiumActive = Boolean(convexUser.isPremium && (!convexUser.premiumExpiry || convexUser.premiumExpiry > Date.now()));
+  const isPremiumActive = Boolean(convexUser?.isPremium && (!convexUser?.premiumExpiry || convexUser?.premiumExpiry > Date.now()));
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -228,8 +170,7 @@ export default function IndexScreen() {
     { Icon: Zap, label: 'Vitality', path: '/mens-health', color: '#3b82f6', bgColor: '#eff6ff' },
     { Icon: Clock, label: 'Fasting', path: '/fasting', color: '#f59e0b', bgColor: '#fffbeb' },
     { Icon: BookOpen, label: 'Library', path: '/library', color: '#10b981', bgColor: '#ecfdf5' },
-    { Icon: CheckCircle, label: 'Todos', path: '/todo-list', color: '#8b5cf6', bgColor: '#f5f3ff' },
-    
+    { Icon: CheckCircle, label: 'To-Dos', path: '/todo-list', color: '#8b5cf6', bgColor: '#f5f3ff' },
     { Icon: Music, label: 'Radio', path: '/music-hub', color: '#8b5cf6', bgColor: '#f5f3ff' },
     { Icon: Timer, label: 'Focus', path: '/focus-mode', color: '#3b82f6', bgColor: '#eff6ff' },
     { Icon: ShoppingBag, label: 'Shop', path: '/shop', color: '#2563eb', bgColor: '#eff6ff' },
@@ -238,14 +179,72 @@ export default function IndexScreen() {
     { Icon: TrendingDown, label: 'Sugar', path: '/sugar-dashboard', color: '#ef4444', bgColor: '#fee2e2' },
   ] as const;
 
-  const discoveryPages = [
-    discoveryItems.slice(0, 6),
-    discoveryItems.slice(6, 12),
-  ];
+  const displayedItems = showAllDiscovery ? discoveryItems : discoveryItems.slice(0, 6);
 
   // Weekly chart data (mock data for now)
   const weekData = [1, 3, 2, 4, 3, 5, 4];
   const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+  // Trigger notifications when data changes
+  useEffect(() => {
+    const stepGoal = 10000;
+    if (steps > 0 && steps < stepGoal) {
+      sendStepReminder(steps, stepGoal);
+    }
+  }, [steps]);
+
+  const isLoading =
+    !isClerkLoaded ||
+    (clerkUser && convexUser === undefined) ||
+    (convexUser?._id &&
+      (foodTotals === undefined ||
+        caloriesBurned === undefined ||
+        exerciseEntries === undefined ||
+        sleepLogsToday === undefined));
+
+  const hasCompletedOnboarding = (convexUser?.age ?? 0) > 0 && (convexUser?.weight ?? 0) > 0 && (convexUser?.height ?? 0) > 0;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text style={styles.loadingText}>Loading your dashboard...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!clerkUser) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Please sign in to continue</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!convexUser) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text style={styles.loadingText}>Setting up your profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!hasCompletedOnboarding) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Finish onboarding to see your Home dashboard.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -431,45 +430,37 @@ export default function IndexScreen() {
           <Text style={styles.chartLabel}>Calories burned this week</Text>
         </View>
 
-        {/* Discover Section (Carousel) */}
+        {/* Discover Section */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Discovery</Text>
-            <TouchableOpacity onPress={() => Alert.alert('Precision Modules', 'All precision health hubs are active.')}>
-              <Text style={{ color: '#2563eb', fontWeight: '800', fontSize: 12 }}>See All</Text>
-            </TouchableOpacity>
           </View>
 
-          <ScrollView 
-            horizontal 
-            pagingEnabled 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 10 }}
-          >
-            {discoveryPages.map((page, pageIdx) => (
-              <View key={pageIdx} style={{ width: width - 64, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                {page.map((item, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    style={{ width: '30%', alignItems: 'center', marginBottom: 20 }}
-                    onPress={() => item.path && router.push(item.path as any)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: item.bgColor, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                      <item.Icon size={22} color={item.color} />
-                    </View>
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#475569' }} numberOfLines={1}>{item.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ))}
-          </ScrollView>
-          
-          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
-            {discoveryPages.map((_, i) => (
-              <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#cbd5e1' }} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+            {displayedItems.map((item: any, idx: number) => (
+              <TouchableOpacity
+                key={idx}
+                style={{ width: '30%', alignItems: 'center', marginBottom: 20 }}
+                onPress={() => item.path && router.push(item.path as any)}
+                activeOpacity={0.7}
+              >
+                <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: item.bgColor, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                  <item.Icon size={22} color={item.color} />
+                </View>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#475569', textAlign: 'center' }} numberOfLines={1}>{item.label}</Text>
+              </TouchableOpacity>
             ))}
           </View>
+          
+          {!showAllDiscovery && (
+            <TouchableOpacity 
+              onPress={() => setShowAllDiscovery(true)}
+              style={{ alignItems: 'center', marginTop: 8, marginBottom: 4 }}
+              activeOpacity={0.7}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#2563eb' }}>View More</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Premium Promo */}
@@ -710,30 +701,6 @@ const styles = StyleSheet.create({
   chartLabel: {
     fontSize: 14,
     color: '#64748b',
-    textAlign: 'center',
-  },
-  discoverGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  discoverItem: {
-    width: (width - 96) / 3,
-    alignItems: 'center',
-    paddingVertical: 12,
-    marginBottom: 8,
-  },
-  discoverIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  discoverLabel: {
-    fontSize: 12,
-    color: '#1e293b',
     textAlign: 'center',
   },
   premiumBanner: {

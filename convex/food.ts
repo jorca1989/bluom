@@ -32,7 +32,7 @@ export const logFoodEntry = mutation({
     if (!isProOrAdmin(user)) {
       const todays = await ctx.db
         .query("foodEntries")
-        .withIndex("by_user_and_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
+        .withIndex("by_user_date", (q) => q.eq("userId", args.userId).eq("date", args.date))
         .collect();
       if (todays.length >= 5) {
         throw new Error("Daily meal log limit reached for free users");
@@ -76,7 +76,7 @@ export const getFoodEntriesByDate = query({
   handler: async (ctx, args) => {
     const entries = await ctx.db
       .query("foodEntries")
-      .withIndex("by_user_and_date", (q) =>
+      .withIndex("by_user_date", (q) =>
         q.eq("userId", args.userId).eq("date", args.date)
       )
       .collect();
@@ -100,7 +100,7 @@ export const getFoodEntriesInRange = query({
     // If this grows large, we can optimize using indexed range queries.
     const all = await ctx.db
       .query("foodEntries")
-      .withIndex("by_user_and_date", (q) => q.eq("userId", args.userId))
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
       .collect();
 
     return all.filter((e) => e.date >= args.startDate && e.date <= args.endDate);
@@ -118,7 +118,7 @@ export const getDailyTotals = query({
   handler: async (ctx, args) => {
     const entries = await ctx.db
       .query("foodEntries")
-      .withIndex("by_user_and_date", (q) =>
+      .withIndex("by_user_date", (q) =>
         q.eq("userId", args.userId).eq("date", args.date)
       )
       .collect();

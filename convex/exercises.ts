@@ -85,9 +85,9 @@ export const bulkInsertExercises = mutation({
     },
 });
 
-export const seedExerciseLibrary = mutation({
+export const seedExerciseLibraryPublic = mutation({
     handler: async (ctx) => {
-        await checkAdminPower(ctx);
+        // Check if library already has data
         const existing = await ctx.db.query("exerciseLibrary").first();
         if (existing) return { success: false, message: "Library already has data" };
 

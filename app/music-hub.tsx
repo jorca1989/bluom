@@ -84,7 +84,7 @@ export default function MusicHubScreen() {
               className="w-[47%] bg-slate-900 rounded-[32px] overflow-hidden shadow-xl"
             >
               <View className="aspect-square bg-slate-800 items-center justify-center">
-                <Ionicons name={pl.platform === 'Spotify' ? "logo-spotify" : "logo-youtube"} size={48} color={pl.color} />
+                <Ionicons name={pl.platform === 'Spotify' ? "logo-spotify" as any : "logo-youtube" as any} size={48} color={pl.color} />
               </View>
               <View className="p-4">
                 <Text className="text-white font-black text-base leading-tight">{pl.title}</Text>
